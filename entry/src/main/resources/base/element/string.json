@@ -11,6 +11,10 @@
     {
       "name": "MainAbility_label",
       "value": "浏览器CE"
+    },
+    {
+      "name": "Camera_Permission_Request",
+      "value": "请求摄像头权限"
     }
   ]
 }

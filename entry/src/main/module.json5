@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 {
   "module": {
     "name": "entry",
@@ -47,7 +46,8 @@
               "action.system.home"
             ]
           }
-        ]
+        ],
+        "srcEntry": "./ets/MainAbility/MainAbility.ts"
       }
     ],
     "requestPermissions": [
@@ -55,11 +55,56 @@
         "name": "ohos.permission.INTERNET"
       },
       {
-        "name": "ohos.permission.GET_WIFI_INFO"
+        "name": "ohos.permission.CAMERA",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ],
+          "when": "always"
+        },
+        "reason": "$string:Camera_Permission_Request"
       },
       {
-        "name": "ohos.permission.INSTALL_BUNDLE"
-      }
+        "name": "ohos.permission.MICROPHONE",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ],
+          "when": "always"
+        },
+        "reason": "$string:Camera_Permission_Request"
+      },
+      {
+        "name": "ohos.permission.WRITE_MEDIA",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ],
+          "when": "always"
+        },
+        "reason": "$string:Camera_Permission_Request"
+      },
+      {
+        "name": "ohos.permission.READ_MEDIA",
+        "usedScene": {
+          "abilities": [
+            "FormAbility"
+          ],
+          "when": "always"
+        },
+        "reason": "$string:Camera_Permission_Request"
+      },
+//      {
+//        "name": "ohos.permission.FILE_ACCESS_MANAGER",
+//      }
+//      {
+//        "name": "ohos.permission.GET_WIFI_INFO"
+//      },
+//      {
+//        "name": "ohos.permission.INSTALL_BUNDLE"
+//      }
     ]
   }
 }
+
+

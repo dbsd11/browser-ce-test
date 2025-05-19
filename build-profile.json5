@@ -1,27 +1,27 @@
-/*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 {
   "app": {
-    "signingConfigs": [],
-    "compileSdkVersion": 9,
-    "compatibleSdkVersion": 9,
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\bison\\.ohos\\config\\default_browser-ce_Ymc2jYC6WqliSxrXlGPVlPpdn9pDEsiRFZDnT8XI1r4=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001BDB5F70D68D523EDB324146A31EECD586146D69E4A76AF48955254E15091AC29B78044D86F2D477",
+          "profile": "C:\\Users\\bison\\.ohos\\config\\default_browser-ce_Ymc2jYC6WqliSxrXlGPVlPpdn9pDEsiRFZDnT8XI1r4=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\bison\\.ohos\\config\\default_browser-ce_Ymc2jYC6WqliSxrXlGPVlPpdn9pDEsiRFZDnT8XI1r4=.p12",
+          "storePassword": "0000001B982CBDF8134FF4243578639DCF4D386CA9C087379C2388F56E4C713592E13C36B797592BCC8ECF"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
         "signingConfig": "default",
+        "compileSdkVersion": 15,
+        "compatibleSdkVersion": 9,
+        "runtimeOS": "OpenHarmony",
       }
     ]
   },
