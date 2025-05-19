@@ -18,6 +18,10 @@ import { Browser, LoadingStatus, WebObject } from '../model/Browser'
 import Logger from '../model/Logger'
 import WindowStageUtil from '../util/WindowStageUtil'
 import { DownloadAndInstallHapDialog, LongPressMenuDialog } from './CustomDialog'
+import picker from '@ohos.file.picker'
+import { BusinessError } from '@kit.BasicServicesKit'
+import { abilityAccessCtrl } from '@kit.AbilityKit';
+
 
 const TAG: string = '[TitleBar]'
 const BUTTON_WIDTH: number = 22
@@ -253,6 +257,18 @@ export struct WebTab {
     console.info('Click the callback in the blank area')
   }
 
+  aboutToAppear(): void {
+    let atManager = abilityAccessCtrl.createAtManager();
+    atManager.requestPermissionsFromUser(getContext(this), ['ohos.permission.CAMERA', 'ohos.permission.MICROPHONE'])
+      .then((data) => {
+        console.info('data:' + JSON.stringify(data));
+        console.info('data permissions:' + data.permissions);
+        console.info('data authResults:' + data.authResults);
+      }).catch((error: BusinessError) => {
+      console.error(`Failed to request permissions from user. Code is ${error.code}, message is ${error.message}`);
+    })
+  }
+
   build() {
     Tabs({ barPosition: BarPosition.Start, controller: this.browser.tabsController }) {
       ForEach(this.browser.webArray, item => {
@@ -267,6 +283,10 @@ export struct WebTab {
             .javaScriptAccess(true)
             .fileAccess(true)
             .domStorageAccess(true)
+            .mediaPlayGestureAccess(true)
+            .onPermissionRequest((event) => {
+              event.request.grant(event.request.getAccessibleResource())
+            })
             .userAgent(this.isPhone ? PHONE_USER_AGENT : PAD_USER_AGENT)
             .onPageBegin((event) => {
               Logger.info(TAG, `onPageBegin= ${JSON.stringify(event)}`)
@@ -356,28 +376,41 @@ export struct WebTab {
             })
             // 监听下载
             .onDownloadStart((event) => {
-              console.log('url:' + event.url)
-              console.log('userAgent:' + event.userAgent)
-              console.log('contentDisposition:' + event.contentDisposition)
-              console.log('contentLength:' + event.contentLength)
-              console.log('mimetype:' + event.mimetype)
-              if (event.url.endsWith('.hap')) {
-                // 自定义对话框
-                this.dialogController2 = new CustomDialogController({
-                  builder: DownloadAndInstallHapDialog({
-                    url: event.url,
-                    contentDisposition: event.contentDisposition,
-                    controller: this.dialogController2
-                  }),
-                  cancel: this.existApp,
-                  autoCancel: false,
-                  alignment: DialogAlignment.Default,
-                  offset: { dx: 0, dy: -20 },
-                  gridCount: 4,
-                  customStyle: false
-                })
-                this.dialogController2.open()
-              }
+              console.log('download url:' + event.url)
+              // 自定义对话框
+              // this.dialogController2 = new CustomDialogController({
+              //   builder: DownloadAndInstallHapDialog({
+              //     url: event.url,
+              //     contentDisposition: event.contentDisposition,
+              //     controller: this.dialogController2
+              //   }),
+              //   cancel: this.existApp,
+              //   autoCancel: false,
+              //   alignment: DialogAlignment.Default,
+              //   offset: { dx: 0, dy: -20 },
+              //   gridCount: 4,
+              //   customStyle: false
+              // })
+              // this.dialogController2.open()
+            })
+            // 上传文件
+            .domStorageAccess(true)
+            .onShowFileSelector((event) => {
+              console.log('MyFileUploader onShowFileSelector invoked')
+              const documentSelectOptions = new picker.DocumentSelectOptions();
+              // 选择媒体文件的最大数目
+              documentSelectOptions.maxSelectNumber = 1;
+              let uris: Array<string> = [];
+              let success = false;
+              const documentViewPicker = new picker.DocumentViewPicker();
+              documentViewPicker.select(documentSelectOptions).then((DocumentSelectResult: Array<string>) => {
+                uris[0] = DocumentSelectResult[0];
+                console.info('photoViewPicker.select to file succeed and uris are:' + uris);
+                success = true;
+              }).catch((err: BusinessError) => {
+                console.error(`Invoke photoViewPicker.select failed, code is ${err.code}, message is ${err.message}`);
+              })
+              return success;
             })
         }
         .padding({bottom: 35.5})

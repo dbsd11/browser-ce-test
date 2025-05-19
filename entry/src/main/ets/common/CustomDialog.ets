@@ -101,14 +101,11 @@ struct DownloadAndInstallHapDialog {
 
   aboutToAppear() {
     // 解析文件名
-    let fileName = new Date().getTime() + '.hap'
+    let fileName = new Date().getTime() + ""
     try {
       this.contentDisposition.split(';').forEach((v, i) => {
         if (('' + v).trim().startsWith('filename')) {
           let fn = v.split('=')[1].replace(/"/g, '')
-          if (!fn.endsWith('.hap')) {
-            fn += '.hap'
-          }
           fileName = fn
         }
       })
@@ -120,19 +117,31 @@ struct DownloadAndInstallHapDialog {
   build() {
     Column() {
       Text('下载').width('100%').fontSize(20).margin({ bottom: 15 })
-      Text('检测到文件为hap安装包，是否下载并安装？').width('100%').fontSize(16).margin({ bottom: 5 })
-      LoadingProgress().width('100%').height(50).color('#3478f6').visibility(this.installLoading ? Visibility.Visible : Visibility.Hidden).margin({ bottom: 10 })
-      Flex({ justifyContent: FlexAlign.SpaceAround }) {
-        Button('取消').width('100%').backgroundColor('#eeeeee').fontColor(Color.Black).margin({right:7.5}).onClick(() => {
+      if (this.fileName && this.fileName.endsWith(".hap")) {
+        Text('检测到文件为hap安装包，是否下载并安装？').width('100%').fontSize(16).margin({ bottom: 5 })
+        LoadingProgress().width('100%').height(50).color('#3478f6').visibility(this.installLoading ? Visibility.Visible : Visibility.Hidden).margin({ bottom: 10 })
+        Flex({ justifyContent: FlexAlign.SpaceAround }) {
+          Button('取消').width('100%').backgroundColor('#eeeeee').fontColor(Color.Black).margin({right:7.5}).onClick(() => {
+            if (this.installLoading) {
+              promptAction.showToast({ message: '下载并安装中，请稍后...', duration: ToastDuration })
+              return
+            }
+            this.controller.close()
+          })
+          Button('安装').width('100%').backgroundColor('#3478f6').fontColor('#eeeeee').margin({left:7.5}).onClick(() => {
+            if (this.installLoading) {
+              promptAction.showToast({ message: '下载并安装中，请稍后...', duration: ToastDuration })
+              return
+            }
+            this.installLoading = true
+            this.checkLocalFile()
+          })
+        }
+      } else {
+        LoadingProgress().width('100%').height(50).color('#3478f6').visibility(this.installLoading ? Visibility.Visible : Visibility.Hidden).margin({ bottom: 10 })
+        Flex().onAppear(() => {
           if (this.installLoading) {
-            promptAction.showToast({ message: '下载并安装中，请稍后...', duration: ToastDuration })
-            return
-          }
-          this.controller.close()
-        })
-        Button('安装').width('100%').backgroundColor('#3478f6').fontColor('#eeeeee').margin({left:7.5}).onClick(() => {
-          if (this.installLoading) {
-            promptAction.showToast({ message: '下载并安装中，请稍后...', duration: ToastDuration })
+            promptAction.showToast({ message: '下载中，请稍后...', duration: ToastDuration })
             return
           }
           this.installLoading = true
@@ -149,23 +158,24 @@ struct DownloadAndInstallHapDialog {
       if (res) {
         fs.unlink(filePath).then(() => {
           console.info("remove file succeed");
-          this.downloadHap()
+          this.downloadFile()
         }).catch((err) => {
           console.info("remove file failed with error message: " + err.message + ", error code: " + err.code);
           this.installLoading = false
         });
         return;
       }
-      this.downloadHap()
+      this.downloadFile()
     }).catch((err) => {
       console.info("access failed with error message: " + err.message + ", error code: " + err.code);
       this.installLoading = false;
     });
   }
 
-  downloadHap() {
+  downloadFile() {
     let filePath = globalThis.abilityContext.filesDir + '/' + this.fileName;
     let downloadTask;
+    let that = this;
 
     try {
       request.downloadFile(globalThis.abilityContext, {
@@ -176,24 +186,31 @@ struct DownloadAndInstallHapDialog {
         // 监听下载完成
         downloadTask.on('complete', () => {
           console.info('Download task completed.');
-          // 安装应用
-          this.installApp(filePath);
+          that.installLoading = false;
+          that.controller.close()
+          if (that.fileName && that.fileName.endsWith(".hap")) {
+            // 安装应用
+            that.installApp(filePath);
+          }
         });
         // 监听下载失败
         downloadTask.on('fail', function callBack(err) {
           console.info('Download task failed. Cause:' + err);
-          this.installLoading = false;
+          that.installLoading = false;
+          that.controller.close()
           promptAction.showToast({ message: '下载失败', duration: ToastDuration });
         });
       }).catch((err) => {
         console.error('Failed to request the download. Cause: ' + JSON.stringify(err));
-        this.installLoading = false;
+        that.installLoading = false;
+        that.controller.close()
         promptAction.showToast({ message: '下载失败', duration: ToastDuration });
       })
     } catch (err) {
       // err.message: bad file path   Download File already exists
       console.error('err.code : ' + err.code + ', err.message : ' + err.message);
-      this.installLoading = false;
+      that.installLoading = false;
+      that.controller.close()
       promptAction.showToast({ message: '下载失败', duration: ToastDuration });
     }
   }
