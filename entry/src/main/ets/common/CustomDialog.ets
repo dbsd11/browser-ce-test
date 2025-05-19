@@ -43,7 +43,7 @@ struct LongPressMenuDialog {
     Column() {
       if (this.linkUrl.trim().length > 0) {
         Button('打开链接').width('100%').margin({bottom: 15}).onClick((e) => {
-          this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl({ url: `${this.linkUrl}` })
+          this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${this.linkUrl}`)
           this.controller.close()
         })
         Button('复制链接').width('100%').margin({bottom: 15}).onClick((e) => {
@@ -53,7 +53,7 @@ struct LongPressMenuDialog {
       }
       if (this.existsImageContents && this.sourceUrl.length > 0) {
         Button('打开图片链接').width('100%').margin({bottom: 15}).onClick((e) => {
-          this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl({ url: `${this.sourceUrl}` })
+          this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${this.sourceUrl}`)
           this.controller.close()
         })
         Button('复制图片链接').width('100%').margin({bottom: 15}).onClick((e) => {

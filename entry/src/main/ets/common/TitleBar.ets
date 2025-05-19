@@ -110,9 +110,7 @@ export struct TabletTitle {
               this.browser.Refresh()
               break;
             case 4:
-              this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl({
-                url: $rawfile('pad.html')
-              })
+              this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl($rawfile('pad.html'))
               break;
           }
         })
@@ -130,9 +128,7 @@ export struct TabletTitle {
         .onSubmit((enterKey: EnterKeyType) => {
           Logger.info(TAG, `onSubmit`)
           if (this.addr.length !== 0) {
-            this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl({
-              url: `${this.addr}` // 移除追加 https:// 前缀
-            })
+            this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${this.addr}`) // 移除追加 https:// 前缀
             this.addr = ''
           }
         })
@@ -226,14 +222,12 @@ export struct WebTab {
   testObj = {
     test: (addr) => {
       Logger.info(TAG, `addr= ${this.browser.tabArrayIndex}`)
-      this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl({ url: `${addr}` }) // 移除追加 https:// 前缀
+      this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${addr}`) // 移除追加 https:// 前缀
     },
     searchWord: (word: string) => {
       Logger.info(`search word= ${word}`)
       let code = encodeURI(word)
-      this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl({
-        url: `https://www.bing.com/search?q=${code}`
-      })
+      this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`https://www.bing.com/search?q=${code}`)
     }
   }
 
@@ -281,7 +275,7 @@ export struct WebTab {
             .onPageEnd((event) => {
               Logger.info(TAG, `onPageEnd= ${JSON.stringify(event)}`)
               if (item.key < this.browser.webControllerArray.length && this.browser.webControllerArray[item.key].controller) {
-                this.browser.webControllerArray[item.key].controller.runJavaScript({ script: 'adapterDevice()' })
+                this.browser.webControllerArray[item.key].controller.runJavaScript('adapterDevice()')
                 this.browser.loadingStatus = LoadingStatus.END
                 this.registerFunc(this.browser.webControllerArray[item.key])
                 if (event.url.startsWith('http')) {
@@ -396,9 +390,9 @@ export struct WebTab {
   registerFunc(webObject: WebObject) {
     if (!webObject.isRegistered) {
       Logger.info(TAG, `registerFunc`)
-      webObject.controller.registerJavaScriptProxy({
-        object: this.testObj, name: 'etsObj', methodList: ['test', 'searchWord']
-      })
+      webObject.controller.registerJavaScriptProxy(
+        this.testObj, 'etsObj', ['test', 'searchWord']
+      )
       webObject.isRegistered = true
       webObject.controller.refresh()
     }
