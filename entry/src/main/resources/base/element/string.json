@@ -15,6 +15,10 @@
     {
       "name": "Camera_Permission_Request",
       "value": "请求摄像头权限"
+    },
+    {
+      "name": "Download_File",
+      "value": "下载文件"
     }
   ]
 }

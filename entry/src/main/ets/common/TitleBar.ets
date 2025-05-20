@@ -17,10 +17,12 @@ import pasteboard from '@ohos.pasteboard'
 import { Browser, LoadingStatus, WebObject } from '../model/Browser'
 import Logger from '../model/Logger'
 import WindowStageUtil from '../util/WindowStageUtil'
-import { DownloadAndInstallHapDialog, LongPressMenuDialog } from './CustomDialog'
+import { DownloadDialog, LongPressMenuDialog } from './CustomDialog'
 import picker from '@ohos.file.picker'
 import { BusinessError } from '@kit.BasicServicesKit'
 import { abilityAccessCtrl } from '@kit.AbilityKit';
+import { webview } from '@kit.ArkWeb'
+import { Environment } from '@kit.CoreFileKit';
 
 
 const TAG: string = '[TitleBar]'
@@ -221,6 +223,8 @@ export struct BrowserTabs {
 export struct WebTab {
   @Link browser: Browser;
   @Link isPhone: boolean;
+  @State downloadingProgress: number = 0;
+
   // @Link hideToolBar: Boolean;
   isRegistered: boolean = false
   testObj = {
@@ -368,30 +372,54 @@ export struct WebTab {
                   alignment: DialogAlignment.Default,
                   offset: { dx: 0, dy: 0 },
                   gridCount: 3,
-                  customStyle: false
+                  customStyle: false,
                 })
                 this.dialogController.open()
               }
               return false;
             })
-            // 监听下载
-            .onDownloadStart((event) => {
-              console.log('download url:' + event.url)
-              // 自定义对话框
-              // this.dialogController2 = new CustomDialogController({
-              //   builder: DownloadAndInstallHapDialog({
-              //     url: event.url,
-              //     contentDisposition: event.contentDisposition,
-              //     controller: this.dialogController2
-              //   }),
-              //   cancel: this.existApp,
-              //   autoCancel: false,
-              //   alignment: DialogAlignment.Default,
-              //   offset: { dx: 0, dy: -20 },
-              //   gridCount: 4,
-              //   customStyle: false
-              // })
-              // this.dialogController2.open()
+            .onControllerAttached(() => {
+              let controller = this.browser.webControllerArray[item.key].controller
+              let delegate: webview.WebDownloadDelegate = new webview.WebDownloadDelegate()
+              delegate.onBeforeDownload((webDownloadItem: webview.WebDownloadItem) => {
+                console.log("will start a download ", webDownloadItem.getSuggestedFileName());
+                const downloadPath = Environment.getUserDownloadDir();
+                webDownloadItem.start(downloadPath + "/" + webDownloadItem.getSuggestedFileName());
+
+                // 自定义对话框
+                this.downloadingProgress = 0;
+                this.dialogController2 = new CustomDialogController({
+                  builder: DownloadDialog({
+                    fileName: webDownloadItem.getSuggestedFileName(),
+                    downloadingProgress: this.downloadingProgress
+                  }),
+                  cancel: this.existApp,
+                  autoCancel: false,
+                  alignment: DialogAlignment.Default,
+                  offset: { dx: 0, dy: -20 },
+                  gridCount: 4,
+                  customStyle: false
+                })
+                this.dialogController2.open()
+              });
+              delegate.onDownloadUpdated((webDownloadItem: webview.WebDownloadItem) => {
+                console.log("download update guid: ", webDownloadItem.getGuid(), " percent: ", webDownloadItem.getPercentComplete());
+                this.downloadingProgress = webDownloadItem.getPercentComplete()
+              })
+              delegate.onDownloadFinish((webDownloadItem: webview.WebDownloadItem) => {
+                console.log("download finished guid: ", webDownloadItem.getGuid());
+                promptAction.showToast({ message: '下载完成', duration: 1000 })
+                if (this.dialogController2) {
+                  this.dialogController2.close()
+                }
+              })
+              delegate.onDownloadFailed((webDownloadItem: webview.WebDownloadItem) => {
+                console.log("download failed guid: ", webDownloadItem.getGuid());
+                if (this.dialogController2) {
+                  this.dialogController2.close()
+                }
+              })
+              controller.setDownloadDelegate(delegate)
             })
             // 上传文件
             .domStorageAccess(true)

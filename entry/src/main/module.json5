@@ -55,10 +55,20 @@
         "name": "ohos.permission.INTERNET"
       },
       {
+        "name": "ohos.permission.READ_WRITE_DOWNLOAD_DIRECTORY",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when": "always"
+        },
+        "reason": "$string:Download_File"
+      },
+      {
         "name": "ohos.permission.CAMERA",
         "usedScene": {
           "abilities": [
-            "FormAbility"
+            "EntryAbility"
           ],
           "when": "always"
         },
@@ -68,7 +78,7 @@
         "name": "ohos.permission.MICROPHONE",
         "usedScene": {
           "abilities": [
-            "FormAbility"
+            "EntryAbility"
           ],
           "when": "always"
         },
@@ -78,7 +88,7 @@
         "name": "ohos.permission.WRITE_MEDIA",
         "usedScene": {
           "abilities": [
-            "FormAbility"
+            "EntryAbility"
           ],
           "when": "always"
         },
@@ -88,7 +98,7 @@
         "name": "ohos.permission.READ_MEDIA",
         "usedScene": {
           "abilities": [
-            "FormAbility"
+            "EntryAbility"
           ],
           "when": "always"
         },

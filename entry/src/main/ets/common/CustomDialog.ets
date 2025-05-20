@@ -16,10 +16,7 @@
 
 import pasteboard from '@ohos.pasteboard'
 import promptAction from '@ohos.promptAction'
-import request from '@ohos.request'
-import installer from '@ohos.bundle.installer'
 import { Browser } from '../model/Browser'
-import fs from '@ohos.file.fs'
 
 const ToastDuration = 1000
 
@@ -86,167 +83,32 @@ struct LongPressMenuDialog {
 }
 
 /**
- * 下载并安装hap对话框
+ * 下载对话框
  */
 @CustomDialog
-struct DownloadAndInstallHapDialog {
-  url: string = ''
-  contentDisposition: string = '' // attachment; filename="DeviceInfo-1.2.3.hap"
+struct DownloadDialog {
   controller: CustomDialogController
   // cancel: () => void
   // confirm: () => void
 
-  fileName: string = ''
-  @State installLoading: boolean = false;
-
-  aboutToAppear() {
-    // 解析文件名
-    let fileName = new Date().getTime() + ""
-    try {
-      this.contentDisposition.split(';').forEach((v, i) => {
-        if (('' + v).trim().startsWith('filename')) {
-          let fn = v.split('=')[1].replace(/"/g, '')
-          fileName = fn
-        }
-      })
-    } catch (e) {
-    }
-    this.fileName = fileName
-  }
+  @State fileName: string = ''
+  @Link downloadingProgress: number;
 
   build() {
     Column() {
-      Text('下载').width('100%').fontSize(20).margin({ bottom: 15 })
-      if (this.fileName && this.fileName.endsWith(".hap")) {
-        Text('检测到文件为hap安装包，是否下载并安装？').width('100%').fontSize(16).margin({ bottom: 5 })
-        LoadingProgress().width('100%').height(50).color('#3478f6').visibility(this.installLoading ? Visibility.Visible : Visibility.Hidden).margin({ bottom: 10 })
-        Flex({ justifyContent: FlexAlign.SpaceAround }) {
-          Button('取消').width('100%').backgroundColor('#eeeeee').fontColor(Color.Black).margin({right:7.5}).onClick(() => {
-            if (this.installLoading) {
-              promptAction.showToast({ message: '下载并安装中，请稍后...', duration: ToastDuration })
-              return
-            }
-            this.controller.close()
-          })
-          Button('安装').width('100%').backgroundColor('#3478f6').fontColor('#eeeeee').margin({left:7.5}).onClick(() => {
-            if (this.installLoading) {
-              promptAction.showToast({ message: '下载并安装中，请稍后...', duration: ToastDuration })
-              return
-            }
-            this.installLoading = true
-            this.checkLocalFile()
-          })
-        }
-      } else {
-        LoadingProgress().width('100%').height(50).color('#3478f6').visibility(this.installLoading ? Visibility.Visible : Visibility.Hidden).margin({ bottom: 10 })
-        Flex().onAppear(() => {
-          if (this.installLoading) {
-            promptAction.showToast({ message: '下载中，请稍后...', duration: ToastDuration })
-            return
-          }
-          this.installLoading = true
-          this.checkLocalFile()
-        })
-      }
-    }.padding(15)
-  }
-
-  checkLocalFile() {
-    let filePath = globalThis.abilityContext.filesDir + '/' + this.fileName;
-
-    fs.access(filePath).then((res) => {
-      if (res) {
-        fs.unlink(filePath).then(() => {
-          console.info("remove file succeed");
-          this.downloadFile()
-        }).catch((err) => {
-          console.info("remove file failed with error message: " + err.message + ", error code: " + err.code);
-          this.installLoading = false
+      Text(` 下载 ${this.fileName} 进度 ${this.downloadingProgress}% `).width('100%').textAlign(TextAlign.Center).fontSize(20).margin({ bottom: 15 });
+      LoadingProgress()
+        .width('100%')
+        .height(50)
+        .color('#3478f6')
+        .visibility(Visibility.Visible)
+        .margin({ bottom: 10 });
+      Button('关闭')
+        .onClick(() => {
+          this.controller.close()
         });
-        return;
-      }
-      this.downloadFile()
-    }).catch((err) => {
-      console.info("access failed with error message: " + err.message + ", error code: " + err.code);
-      this.installLoading = false;
-    });
-  }
-
-  downloadFile() {
-    let filePath = globalThis.abilityContext.filesDir + '/' + this.fileName;
-    let downloadTask;
-    let that = this;
-
-    try {
-      request.downloadFile(globalThis.abilityContext, {
-        url: this.url,
-        filePath: filePath
-      }).then((data) => {
-        downloadTask = data;
-        // 监听下载完成
-        downloadTask.on('complete', () => {
-          console.info('Download task completed.');
-          that.installLoading = false;
-          that.controller.close()
-          if (that.fileName && that.fileName.endsWith(".hap")) {
-            // 安装应用
-            that.installApp(filePath);
-          }
-        });
-        // 监听下载失败
-        downloadTask.on('fail', function callBack(err) {
-          console.info('Download task failed. Cause:' + err);
-          that.installLoading = false;
-          that.controller.close()
-          promptAction.showToast({ message: '下载失败', duration: ToastDuration });
-        });
-      }).catch((err) => {
-        console.error('Failed to request the download. Cause: ' + JSON.stringify(err));
-        that.installLoading = false;
-        that.controller.close()
-        promptAction.showToast({ message: '下载失败', duration: ToastDuration });
-      })
-    } catch (err) {
-      // err.message: bad file path   Download File already exists
-      console.error('err.code : ' + err.code + ', err.message : ' + err.message);
-      that.installLoading = false;
-      that.controller.close()
-      promptAction.showToast({ message: '下载失败', duration: ToastDuration });
-    }
-  }
-
-  installApp(hapPath: string) {
-    let hapFilePaths = [hapPath];
-    let installParam = {
-      userId: 100,
-      isKeepData: false,
-      installFlag: 1,
-    };
-
-    try {
-      installer.getBundleInstaller().then(data => {
-        data.install(hapFilePaths, installParam, err => {
-          this.installLoading = false;
-          if (err) {
-            console.error('install failed:' + err.message);
-            promptAction.showToast({ message: '安装失败：' + err.message, duration: ToastDuration });
-          } else {
-            console.info('install successfully.');
-            promptAction.showToast({ message: '安装成功', duration: ToastDuration });
-            this.controller.close()
-          }
-        });
-      }).catch(error => {
-        console.error('getBundleInstaller failed. Cause: ' + error.message);
-        this.installLoading = false;
-        promptAction.showToast({ message: '安装失败：' + error.message, duration: ToastDuration });
-      });
-    } catch (error) {
-      console.error('getBundleInstaller failed. Cause: ' + error.message);
-      this.installLoading = false;
-      promptAction.showToast({ message: '安装失败：' + error.message, duration: ToastDuration });
     }
   }
 }
 
-export { LongPressMenuDialog, DownloadAndInstallHapDialog }
+export { LongPressMenuDialog, DownloadDialog }

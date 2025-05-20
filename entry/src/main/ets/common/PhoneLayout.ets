@@ -149,8 +149,11 @@ export struct PhoneLayout {
               })
               .onSubmit((enterKey: EnterKeyType) => {
                 Logger.info(TAG, `onSubmit`)
-                this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${this.addr}`)
-                this.addr = ''
+                try {
+                  this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${this.addr}`)
+                  this.addr = ''
+                } catch (e) {
+                }
               })
             Button({ type: ButtonType.Normal }) {
               Image($r('app.media.submit'))
