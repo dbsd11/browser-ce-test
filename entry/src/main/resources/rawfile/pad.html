@@ -75,20 +75,24 @@
         }
 	}
     function func1() {
-        let array = [{src: "./bing.png", name:"必应", addr: "bing.com"},
-             {src: "./12306.png", name: "12306", addr: "www.12306.cn"},
-             {src: "./dianping.png", name: "大众点评", addr:"www.dianping.com"},
-             {src: "./sina.png", name: "新浪新闻", addr:"news.sina.com.cn/"},
-             {src: "./jingdong.png", name: "京东", addr:"www.jd.com"},
-             {src: "./pinduoduo.png", name: "拼多多", addr:"www.pinduoduo.com"},
-             {src: "./weibo.png", name:"微博", addr: "weibo.com/"},
-             {src: "./taobao.png", name:"淘宝", addr: "www.tmall.com"},
-             {src: "./weipinhui.png", name:"唯品会", addr:"www.vip.com"},
-             {src: "./weixin.png", name:"微信阅读", addr:"weread.qq.com"},
-             {src: "./zhihu.png", name:"知乎", addr:"www.zhihu.com"},
-             {src: "./xiecheng.png", name:"携程", addr:"www.ctrip.com"},]
+        let array = [
+            {src:"./Pcomputer.jpeg", name: "Pcomputer", addr: "https://puter.bdzz.com.cn"}
+<!--             {src: "./bing.png", name:"必应", addr: "bing.com"},-->
+<!--             {src: "./12306.png", name: "12306", addr: "www.12306.cn"},-->
+<!--             {src: "./dianping.png", name: "大众点评", addr:"www.dianping.com"},-->
+<!--             {src: "./sina.png", name: "新浪新闻", addr:"news.sina.com.cn/"},-->
+<!--             {src: "./jingdong.png", name: "京东", addr:"www.jd.com"},-->
+<!--             {src: "./pinduoduo.png", name: "拼多多", addr:"www.pinduoduo.com"},-->
+<!--             {src: "./weibo.png", name:"微博", addr: "weibo.com/"},-->
+<!--             {src: "./taobao.png", name:"淘宝", addr: "www.tmall.com"},-->
+<!--             {src: "./weipinhui.png", name:"唯品会", addr:"www.vip.com"},-->
+<!--             {src: "./weixin.png", name:"微信阅读", addr:"weread.qq.com"},-->
+<!--             {src: "./zhihu.png", name:"知乎", addr:"www.zhihu.com"},-->
+<!--             {src: "./xiecheng.png", name:"携程", addr:"www.ctrip.com"},-->
+         ]
       var div = document.getElementById("test")
       div.className = isPhone ? "phone" : "tablet"
+      let firstBoxImg = null;
       for(let i = 0; i < array.length; i++) {
         let box = document.createElement("div")
 		box.style.display = 'flex'
@@ -109,6 +113,9 @@
         text.style.fontSize = '13px'
         text.style.fontWeight = 400
         var image = new Image()
+        if (!firstBoxImg) {
+            firstBoxImg = image
+        }
         image.src = array[i].src
         image.style.width = '48px'
 		image.style.height = '48px'
@@ -120,6 +127,9 @@
         box.appendChild(text)
         div.appendChild(box)
       }
+      if (firstBoxImg) {
+        firstBoxImg.click()
+      }
     }
     function uploadWord() {
         let inputDom = document.getElementById("searchCon")
@@ -130,7 +140,7 @@
 <body style="margin：0px; background-image: url(./backgroundImg.jpg);
     background-size:cover;height:98% padding-bottom:60px" onload="initPad()">
 <div style="display:flex;flex-direction:column;width:100%;padding-bottom:60px">
-    <div class="searchArea" style="border-radius: 20px; display: block; background-color: rgba(255, 255, 255, 0.7);flex-shrink: 0;">
+    <div class="searchArea" style="display:none; border-radius: 20px; background-color: rgba(255, 255, 255, 0.7);flex-shrink: 0;">
         <div class="searchFirm" style="border-bottom-left-radius: 8px; border-top-left-radius: 8px;">
             <div class="searchFirmIcon sfBaidu" style="background-image: url(./all.png);">
             </div>

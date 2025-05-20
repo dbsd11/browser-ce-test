@@ -135,47 +135,47 @@ export struct PhoneLayout {
     Column() {
       Navigation() {
         Column() {
-          Row() {
-            TextInput({ placeholder: '输入网址...', text: this.browser.inputValue })
-              // 字体太大被遮挡，调成14
-              .placeholderFont({ size: 14, weight: 500 })
-              .fontSize(14)
-              .margin(2)
-              // 垂直居中效果更好，改为32
-              .height(32)
-              .onChange((value: string) => {
-                Logger.info(TAG, `onChange`)
-                this.addr = value
-              })
-              .onSubmit((enterKey: EnterKeyType) => {
-                Logger.info(TAG, `onSubmit`)
-                try {
-                  this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${this.addr}`)
-                  this.addr = ''
-                } catch (e) {
-                }
-              })
-            Button({ type: ButtonType.Normal }) {
-              Image($r('app.media.submit'))
-            }
-            .margin(8)
-            .width(BUTTON_WIDTH)
-            .height(BUTTON_WIDTH)
-            .backgroundColor(this.hasDown ? DOWN_COLOR : UP_COLOR)
-            .borderRadius(BUTTON_RADIUS)
-            .flexShrink(0)
-            .onTouch((event: TouchEvent) => {
-              if (event.type === TouchType.Down) {
-                this.hasDown = true
-              } else if (event.type === TouchType.Up) {
-                this.hasDown = false
-              }
-            })
-            .onClick((event: ClickEvent) => {
-              this.browser.loadUrl(this.addr)
-              this.addr = ''
-            })
-          }
+          // Row() {
+            // TextInput({ placeholder: '输入网址...', text: this.browser.inputValue })
+            //   // 字体太大被遮挡，调成14
+            //   .placeholderFont({ size: 14, weight: 500 })
+            //   .fontSize(14)
+            //   .margin(2)
+            //   // 垂直居中效果更好，改为32
+            //   .height(32)
+            //   .onChange((value: string) => {
+            //     Logger.info(TAG, `onChange`)
+            //     this.addr = value
+            //   })
+            //   .onSubmit((enterKey: EnterKeyType) => {
+            //     Logger.info(TAG, `onSubmit`)
+            //     try {
+            //       this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${this.addr}`)
+            //       this.addr = ''
+            //     } catch (e) {
+            //     }
+            //   })
+            // Button({ type: ButtonType.Normal }) {
+            //   Image($r('app.media.submit'))
+            // }
+            // .margin(8)
+            // .width(BUTTON_WIDTH)
+            // .height(BUTTON_WIDTH)
+            // .backgroundColor(this.hasDown ? DOWN_COLOR : UP_COLOR)
+            // .borderRadius(BUTTON_RADIUS)
+            // .flexShrink(0)
+            // .onTouch((event: TouchEvent) => {
+            //   if (event.type === TouchType.Down) {
+            //     this.hasDown = true
+            //   } else if (event.type === TouchType.Up) {
+            //     this.hasDown = false
+            //   }
+            // })
+            // .onClick((event: ClickEvent) => {
+            //   this.browser.loadUrl(this.addr)
+            //   this.addr = ''
+            // })
+          // }
 
           Column() {
             WebTab({ browser: $browser, isPhone: $isPhone })

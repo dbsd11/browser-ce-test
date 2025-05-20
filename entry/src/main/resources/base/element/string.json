@@ -6,11 +6,11 @@
     },
     {
       "name": "MainAbility_desc",
-      "value": "description"
+      "value": "个人移动办公电脑"
     },
     {
       "name": "MainAbility_label",
-      "value": "浏览器CE"
+      "value": "PComputer"
     },
     {
       "name": "Camera_Permission_Request",

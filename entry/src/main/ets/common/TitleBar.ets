@@ -116,28 +116,28 @@ export struct TabletTitle {
               this.browser.Refresh()
               break;
             case 4:
-              this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl($rawfile('pad.html'))
+              this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl($rawfile('phone.html'))
               break;
           }
         })
       }, item => item.id)
 
-      TextInput({ placeholder: '输入网址...', text: this.browser.inputValue })
-        .placeholderFont({ size: 18, weight: 500 })
-        .fontSize(18)
-        .margin(2)
-        .width('51%')
-        .layoutWeight(1)
-        .onChange((value: string) => {
-          this.addr = value
-        })
-        .onSubmit((enterKey: EnterKeyType) => {
-          Logger.info(TAG, `onSubmit`)
-          if (this.addr.length !== 0) {
-            this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${this.addr}`) // 移除追加 https:// 前缀
-            this.addr = ''
-          }
-        })
+      // TextInput({ placeholder: '输入网址...', text: this.browser.inputValue })
+      //   .placeholderFont({ size: 18, weight: 500 })
+      //   .fontSize(18)
+      //   .margin(2)
+      //   .width('51%')
+      //   .layoutWeight(1)
+      //   .onChange((value: string) => {
+      //     this.addr = value
+      //   })
+      //   .onSubmit((enterKey: EnterKeyType) => {
+      //     Logger.info(TAG, `onSubmit`)
+      //     if (this.addr.length !== 0) {
+      //       this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${this.addr}`) // 移除追加 https:// 前缀
+      //       this.addr = ''
+      //     }
+      //   })
 
       ForEach(this.actionButton, item => {
         Button({ type: ButtonType.Normal }) {
