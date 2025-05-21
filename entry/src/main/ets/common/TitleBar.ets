@@ -188,7 +188,7 @@ export struct BrowserTabs {
       ForEach(this.browser.webArray, (item:WebKey) => {
         Row() {
           Row() {
-            Text(item.url||"PComputer")
+            Text((item.url||"PComputer").replace(/(https)|(http)|[:./]|(\?.*)/g, ""))
           }.width('100%').flexShrink(1).justifyContent(FlexAlign.Center).height('100%')
 
           Button({ type: ButtonType.Normal }) {
