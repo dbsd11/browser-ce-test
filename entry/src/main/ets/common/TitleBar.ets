@@ -285,7 +285,7 @@ export struct WebTab {
       ForEach(this.browser.webArray, (item: WebKey) => {
         TabContent() {
           Web({
-            src: item.url || this.isPhone ? $rawfile('phone.html') : $rawfile('pad.html'),
+            src: item.url || (this.isPhone ? $rawfile('phone.html') : $rawfile('pad.html')),
             controller: this.browser.webControllerArray[item.key] !== undefined ?
               this.browser.webControllerArray[item.key].controller : undefined
           })
@@ -295,13 +295,47 @@ export struct WebTab {
             .fileAccess(true)
             .domStorageAccess(true)
             .mediaPlayGestureAccess(true)
+            .zoomAccess(true)
             .onPermissionRequest((event) => {
               event.request.grant(event.request.getAccessibleResource())
             })
             .userAgent(this.isPhone ? PHONE_USER_AGENT : PAD_USER_AGENT)
+              // 自定义网址拦截器
+            .onUrlLoadIntercept((event) => {
+              // 当前网址
+              let url = event.data.toString();
+              console.log('onUrlLoadIntercept ' + url)
+              // 网址协议前缀
+              let urlProtocolPrefix = 'unknown';
+              try {
+                urlProtocolPrefix = url.split('://')[0];
+              } catch (e) {}
+              // 拦截三方客户端协议前缀的网址
+              if (!['http', 'https', 'file', 'data', 'resource'].includes(urlProtocolPrefix)) {
+                promptAction.showToast({ message: '阻止打开三方协议前缀：'+urlProtocolPrefix, duration: 1000 });
+                return true;
+              }
+              return false;
+            })
             .onOverrideUrlLoading((webResourceRequest: WebResourceRequest) => {
+              if (this.browser.webArray[item.key].url) {
+                return false
+              }
               this.browser.addTabWithUrl(webResourceRequest.getRequestUrl())
               return true
+            })
+            .onSslErrorEvent((sslErrorEvent: SslErrorEvent) => {
+              sslErrorEvent.handler.handleConfirm()
+            })
+            .onSslErrorEventReceive((event) => {
+              event.handler.handleConfirm()
+            })
+            .onSslErrorEvent((event) => {
+              event.handler.handleConfirm()
+            })
+            .onInterceptRequest((event) => {
+              console.log('url:' + event.request.getRequestUrl())
+              return null;
             })
             .onPageBegin((event) => {
               Logger.info(TAG, `onPageBegin= ${JSON.stringify(event)}`)
@@ -382,27 +416,6 @@ export struct WebTab {
               } else {
                 this.browser.hideProgress = false
               }
-            })
-            .onInterceptRequest((event) => {
-              console.log('url:' + event.request.getRequestUrl())
-              return null;
-            })
-            // 自定义网址拦截器
-            .onUrlLoadIntercept((event) => {
-              // 当前网址
-              let url = event.data.toString();
-              console.log('onUrlLoadIntercept ' + url)
-              // 网址协议前缀
-              let urlProtocolPrefix = 'unknown';
-              try {
-                urlProtocolPrefix = url.split('://')[0];
-              } catch (e) {}
-              // 拦截三方客户端协议前缀的网址
-              if (!['http', 'https', 'file', 'data', 'resource'].includes(urlProtocolPrefix)) {
-                promptAction.showToast({ message: '阻止打开三方协议前缀：'+urlProtocolPrefix, duration: 1000 });
-                return true;
-              }
-              return false;
             })
             // 全屏
             .onFullScreenEnter(() => {
