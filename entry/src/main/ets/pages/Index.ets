@@ -49,9 +49,11 @@ struct Index {
     try {
       let deviceType = parameter.getSync("const.build.characteristics")
       // 修改为：default 也认为是 phone
-      if (deviceType === 'phone' || deviceType === 'default') {
+      if (deviceType === 'phone') {
       //if (deviceType === 'phone') {
         this.isPhone = true
+      } else {
+        this.isPhone = false
       }
     } catch (e) {
       Logger.info(TAG, `getSync unexpected error: ${e}`)

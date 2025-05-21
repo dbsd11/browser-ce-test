@@ -19,6 +19,10 @@
     {
       "name": "Download_File",
       "value": "下载文件"
+    },
+    {
+      "name": "MANAGE_APP_BOOT",
+      "value": "应用自启动"
     }
   ]
 }

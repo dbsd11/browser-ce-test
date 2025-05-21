@@ -26,13 +26,15 @@ export class WebObject {
 }
 
 @Observed
-class WebKey {
+export class WebKey {
   key: number;
   timestamp: number;
+  url: string;
 
-  constructor(key: number, timestamp: number) {
+  constructor(key: number, timestamp: number, url: string) {
     this.key = key
     this.timestamp = timestamp
+    this.url = url
   }
 }
 
@@ -50,7 +52,7 @@ export class Browser {
   hideProgress: boolean = true
   loadingStatus: LoadingStatus = LoadingStatus.END
 
-  webArray: Array<WebKey> = [new WebKey(0, new Date().getTime())]
+  webArray: Array<WebKey> = [new WebKey(0, new Date().getTime(), "")]
   tabsController: TabsController = new TabsController()
   webControllerArray: Array<WebObject> = [new WebObject(new webview.WebviewController(), false)]
 
@@ -58,6 +60,10 @@ export class Browser {
     Logger.info(TAG, `delete before tab index= ${index} controller length ${this.webControllerArray.length} tabArrayIndex= ${this.tabArrayIndex}`)
     this.webArray.splice(index, 1)
     this.webControllerArray.splice(index, 1)
+    let needChangeTabIndex = false;
+    if(this.tabArrayIndex == index) {
+      needChangeTabIndex = true;
+    }
     if (this.tabArrayIndex > index || this.tabArrayIndex === this.webArray.length) {
       this.tabArrayIndex -= 1
     }
@@ -68,7 +74,9 @@ export class Browser {
       Logger.info(TAG, `key ${this.webArray[i].key}, time=${this.webArray[i].timestamp}`)
     }
     Logger.info(`delete after tab index=${index}, controller length=${this.webControllerArray.length}, tabArrayIndex=${this.tabArrayIndex}`)
-    this.tabsController.changeIndex(this.tabArrayIndex)
+    if (needChangeTabIndex) {
+      this.tabsController.changeIndex(this.tabArrayIndex)
+    }
   }
 
   getWebArray() {
@@ -76,19 +84,19 @@ export class Browser {
   }
 
   addTab() {
-    if (this.webArray.length > 10) {
-      prompt.showToast({
-        message: '页签数量已满'
-      })
-      return;
+    this.addTabWithUrl("")
+  }
+
+  addTabWithUrl(url:string) {
+    if (this.webArray.length >= 10) {
+      this.deleteTab(0)
     }
     let webController: WebviewController = new webview.WebviewController();
     let object = new WebObject(webController, false)
     this.webControllerArray.push(object)
-    this.webArray.push(new WebKey(this.webArray.length, new Date().getTime()))
-    this.tabArrayIndex = this.webArray.length - 1
+    this.webArray.push(new WebKey(this.webArray.length, new Date().getTime(), url))
     Logger.info(TAG, `add tab index= ${this.tabArrayIndex}`)
-    this.tabsController.changeIndex(this.tabArrayIndex)
+    this.inputValue = Math.random().toString(36).substr(2, 9) + new Date().getTime();
   }
 
   setTabArrayIndex(tabArrayIndex: number) {

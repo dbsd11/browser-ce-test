@@ -14,7 +14,7 @@
  */
 import promptAction from '@ohos.promptAction'
 import pasteboard from '@ohos.pasteboard'
-import { Browser, LoadingStatus, WebObject } from '../model/Browser'
+import { Browser, LoadingStatus, WebObject, WebKey } from '../model/Browser'
 import Logger from '../model/Logger'
 import WindowStageUtil from '../util/WindowStageUtil'
 import { DownloadDialog, LongPressMenuDialog } from './CustomDialog'
@@ -73,10 +73,10 @@ export struct TabletTitle {
     imageSrc: Resource,
     id: number
   }> = [
-    {
-      imageSrc: $r('app.media.submit'),
-      id: 5
-    },
+    // {
+    //   imageSrc: $r('app.media.submit'),
+    //   id: 5
+    // },
     {
       imageSrc: $r('app.media.ic_public_add'),
       id: 6
@@ -116,7 +116,11 @@ export struct TabletTitle {
               this.browser.Refresh()
               break;
             case 4:
-              this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl($rawfile('phone.html'))
+              if (this.browser.webControllerArray[this.browser.tabArrayIndex].isRegistered && this.browser.webControllerArray[this.browser.tabArrayIndex].controller) {
+                this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl($rawfile('phone.html'))
+              } else {
+                this.browser.Refresh()
+              }
               break;
           }
         })
@@ -158,10 +162,11 @@ export struct TabletTitle {
           }
         })
         .onClick((event: ClickEvent) => {
-          if (item.id === 5) {
-            this.browser.loadUrl(this.addr)
-            this.addr = ''
-          } else if (item.id === 6) {
+          // if (item.id === 5) {
+          //   this.browser.loadUrl(this.addr)
+          //   this.addr = ''
+          // }
+          if (item.id === 6) {
             Logger.info(TAG, `add tab index = ` + this.arrayIndex)
             this.browser.addTab()
           }
@@ -180,10 +185,10 @@ export struct BrowserTabs {
 
   build() {
     Flex({ direction: FlexDirection.Row, alignItems: ItemAlign.Start }) {
-      ForEach(this.browser.webArray, item => {
+      ForEach(this.browser.webArray, (item:WebKey) => {
         Row() {
           Row() {
-            Text('主页')
+            Text(item.url||"PComputer")
           }.width('100%').flexShrink(1).justifyContent(FlexAlign.Center).height('100%')
 
           Button({ type: ButtonType.Normal }) {
@@ -230,7 +235,9 @@ export struct WebTab {
   testObj = {
     test: (addr) => {
       Logger.info(TAG, `addr= ${this.browser.tabArrayIndex}`)
-      this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${addr}`) // 移除追加 https:// 前缀
+      if(this.browser.webControllerArray[this.browser.tabArrayIndex].isRegistered) {
+        this.browser.webControllerArray[this.browser.tabArrayIndex].controller.loadUrl(`${addr}`) // 移除追加 https:// 前缀
+      }
     },
     searchWord: (word: string) => {
       Logger.info(`search word= ${word}`)
@@ -275,10 +282,10 @@ export struct WebTab {
 
   build() {
     Tabs({ barPosition: BarPosition.Start, controller: this.browser.tabsController }) {
-      ForEach(this.browser.webArray, item => {
+      ForEach(this.browser.webArray, (item: WebKey) => {
         TabContent() {
           Web({
-            src: this.isPhone ? $rawfile('phone.html') : $rawfile('pad.html'),
+            src: item.url || this.isPhone ? $rawfile('phone.html') : $rawfile('pad.html'),
             controller: this.browser.webControllerArray[item.key] !== undefined ?
               this.browser.webControllerArray[item.key].controller : undefined
           })
@@ -292,22 +299,80 @@ export struct WebTab {
               event.request.grant(event.request.getAccessibleResource())
             })
             .userAgent(this.isPhone ? PHONE_USER_AGENT : PAD_USER_AGENT)
+            .onOverrideUrlLoading((webResourceRequest: WebResourceRequest) => {
+              this.browser.addTabWithUrl(webResourceRequest.getRequestUrl())
+              return true
+            })
             .onPageBegin((event) => {
               Logger.info(TAG, `onPageBegin= ${JSON.stringify(event)}`)
               this.browser.loadingStatus = LoadingStatus.LOADING
             })
             .onPageEnd((event) => {
               Logger.info(TAG, `onPageEnd= ${JSON.stringify(event)}`)
-              if (item.key < this.browser.webControllerArray.length && this.browser.webControllerArray[item.key].controller) {
-                this.browser.webControllerArray[item.key].controller.runJavaScript('adapterDevice()')
-                this.browser.loadingStatus = LoadingStatus.END
-                this.registerFunc(this.browser.webControllerArray[item.key])
-                if (event.url.startsWith('http')) {
-                  this.browser.inputValue = event.url
-                } else {
-                  this.browser.inputValue = ''
-                }
+              this.browser.loadingStatus = LoadingStatus.END
+              if (item.key >= this.browser.webControllerArray.length || !this.browser.webControllerArray[item.key].controller) {
+                return
               }
+
+              let controller = this.browser.webControllerArray[item.key].controller
+              let webId: number = -1
+              try {
+                webId = controller.getWebId()
+              } catch (e) {
+              }
+              // 判断controller是否attach到web component
+              if (webId == -1) {
+                return
+              }
+
+              controller.runJavaScript('adapterDevice()')
+              this.registerFunc(this.browser.webControllerArray[item.key])
+              if (event.url.startsWith('http')) {
+                this.browser.inputValue = event.url
+              } else {
+                this.browser.inputValue = ''
+              }
+
+              let delegate: webview.WebDownloadDelegate = new webview.WebDownloadDelegate()
+              delegate.onBeforeDownload((webDownloadItem: webview.WebDownloadItem) => {
+                console.log("will start a download ", webDownloadItem.getSuggestedFileName());
+                const downloadPath = Environment.getUserDownloadDir();
+                webDownloadItem.start(downloadPath + "/" + webDownloadItem.getSuggestedFileName());
+
+                // 自定义对话框
+                this.downloadingProgress = 0;
+                this.dialogController2 = new CustomDialogController({
+                  builder: DownloadDialog({
+                    fileName: webDownloadItem.getSuggestedFileName(),
+                    downloadingProgress: this.downloadingProgress
+                  }),
+                  cancel: this.existApp,
+                  autoCancel: false,
+                  alignment: DialogAlignment.Default,
+                  offset: { dx: 0, dy: -20 },
+                  gridCount: 4,
+                  customStyle: false
+                })
+                this.dialogController2.open()
+              });
+              delegate.onDownloadUpdated((webDownloadItem: webview.WebDownloadItem) => {
+                console.log("download update guid: ", webDownloadItem.getGuid(), " percent: ", webDownloadItem.getPercentComplete());
+                this.downloadingProgress = webDownloadItem.getPercentComplete()
+              })
+              delegate.onDownloadFinish((webDownloadItem: webview.WebDownloadItem) => {
+                console.log("download finished guid: ", webDownloadItem.getGuid());
+                promptAction.showToast({ message: '下载完成', duration: 1000 })
+                if (this.dialogController2) {
+                  this.dialogController2.close()
+                }
+              })
+              delegate.onDownloadFailed((webDownloadItem: webview.WebDownloadItem) => {
+                console.log("download failed guid: ", webDownloadItem.getGuid());
+                if (this.dialogController2) {
+                  this.dialogController2.close()
+                }
+              })
+              controller.setDownloadDelegate(delegate)
             })
             .onProgressChange((event) => {
               Logger.info(TAG, `onProgressChange`)
@@ -378,49 +443,6 @@ export struct WebTab {
               }
               return false;
             })
-            .onControllerAttached(() => {
-              let controller = this.browser.webControllerArray[item.key].controller
-              let delegate: webview.WebDownloadDelegate = new webview.WebDownloadDelegate()
-              delegate.onBeforeDownload((webDownloadItem: webview.WebDownloadItem) => {
-                console.log("will start a download ", webDownloadItem.getSuggestedFileName());
-                const downloadPath = Environment.getUserDownloadDir();
-                webDownloadItem.start(downloadPath + "/" + webDownloadItem.getSuggestedFileName());
-
-                // 自定义对话框
-                this.downloadingProgress = 0;
-                this.dialogController2 = new CustomDialogController({
-                  builder: DownloadDialog({
-                    fileName: webDownloadItem.getSuggestedFileName(),
-                    downloadingProgress: this.downloadingProgress
-                  }),
-                  cancel: this.existApp,
-                  autoCancel: false,
-                  alignment: DialogAlignment.Default,
-                  offset: { dx: 0, dy: -20 },
-                  gridCount: 4,
-                  customStyle: false
-                })
-                this.dialogController2.open()
-              });
-              delegate.onDownloadUpdated((webDownloadItem: webview.WebDownloadItem) => {
-                console.log("download update guid: ", webDownloadItem.getGuid(), " percent: ", webDownloadItem.getPercentComplete());
-                this.downloadingProgress = webDownloadItem.getPercentComplete()
-              })
-              delegate.onDownloadFinish((webDownloadItem: webview.WebDownloadItem) => {
-                console.log("download finished guid: ", webDownloadItem.getGuid());
-                promptAction.showToast({ message: '下载完成', duration: 1000 })
-                if (this.dialogController2) {
-                  this.dialogController2.close()
-                }
-              })
-              delegate.onDownloadFailed((webDownloadItem: webview.WebDownloadItem) => {
-                console.log("download failed guid: ", webDownloadItem.getGuid());
-                if (this.dialogController2) {
-                  this.dialogController2.close()
-                }
-              })
-              controller.setDownloadDelegate(delegate)
-            })
             // 上传文件
             .domStorageAccess(true)
             .onShowFileSelector((event) => {
@@ -441,7 +463,7 @@ export struct WebTab {
               return success;
             })
         }
-        .padding({bottom: 35.5})
+        .padding({bottom: 75})
       }, item => item.timestamp.toString())
     }
     .barHeight(0)
