@@ -77,6 +77,7 @@ export class Browser {
     if (needChangeTabIndex) {
       this.tabsController.changeIndex(this.tabArrayIndex)
     }
+    this.updateBrowserInfo();
   }
 
   getWebArray() {
@@ -96,7 +97,7 @@ export class Browser {
     this.webControllerArray.push(object)
     this.webArray.push(new WebKey(this.webArray.length, new Date().getTime(), url))
     Logger.info(TAG, `add tab index= ${this.tabArrayIndex}`)
-    this.inputValue = Math.random().toString(36).substr(2, 9) + new Date().getTime();
+    this.updateBrowserInfo();
   }
 
   setTabArrayIndex(tabArrayIndex: number) {
@@ -118,6 +119,10 @@ export class Browser {
   loadUrl(addr: string) {
 //    addr = "https://" + addr; // 移除追加 https:// 前缀
     this.webControllerArray[this.tabArrayIndex].controller.loadUrl(addr)
+  }
+
+  updateBrowserInfo() {
+    this.inputValue = Math.random().toString(36).substr(2, 9) + new Date().getTime();
   }
 
   Back() {
