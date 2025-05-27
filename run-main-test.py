@@ -1,4 +1,6 @@
+import imp
 import os
+import time
 script_path=os.path.dirname(__file__)
 os.chdir(script_path)
 
@@ -38,6 +40,7 @@ def test_app(d: Driver, package_name):
             try:
                 import importlib
                 test_module = importlib.import_module(package_name.replace('.', '_') + ".test")
+                importlib.reload(test_module)
                 if hasattr(test_module, 'test'):
                     test_module.test(d)
             except Exception as e:
@@ -77,6 +80,9 @@ if __name__ == '__main__':
     
     test_app(d, "org.ohosdev.browserce")
 
+    d.close()
+    del d
+    
     print("test ended")
     import os
     os._exit(0)
