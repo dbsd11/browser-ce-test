@@ -89,6 +89,7 @@ export struct TabletTitle {
         Button({ type: ButtonType.Normal }) {
           Image(item.imageSrc)
         }
+        .id('navigationButton' + item.id)
         .margin(8)
         .width(BUTTON_WIDTH)
         .height(BUTTON_WIDTH)
