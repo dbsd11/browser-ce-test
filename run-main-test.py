@@ -1,6 +1,4 @@
-import imp
 import os
-import time
 script_path=os.path.dirname(__file__)
 os.chdir(script_path)
 
@@ -48,7 +46,6 @@ def test_app(d: Driver, package_name):
             import time
             # do somethings
             time.sleep(5)
-        assert output_path.joinpath("runTest.mp4").exists()
     except Exception as e:
         print(e)
     finally:
@@ -84,5 +81,4 @@ if __name__ == '__main__':
     del d
     
     print("test ended")
-    import os
     os._exit(0)

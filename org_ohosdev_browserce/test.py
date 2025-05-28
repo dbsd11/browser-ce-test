@@ -5,19 +5,19 @@ def create_dev_center_app(d: Driver, app_name, outer_url):
     d(text="My Apps").click_if_exists()
     d(type="button", text=" New App").click_if_exists()
     d(type="button", text="Create an App").click_if_exists()
-    if not d(type="textField", index=0).exists(retries=2, wait_time=2):
+    if not d(type="textField", index=0).exists(retries=5):
         return
     d(type="textField", index=0).input_text(app_name)
     d(type="button", text="好的").click_if_exists()
     time.sleep(5)
-    if not d(text="Settings").exists(retries=3, wait_time=2):
+    if not d(text="Settings").exists(retries=10):
         return
     d(text="Settings").click_if_exists()
     
     d.swipe_ext("up", scale=0.1)
     
     indexUrlField = d(type="textField", text="https://dev-center.puter.com/coming-soon.html")
-    if not indexUrlField.exists(retries=1, wait_time=2):
+    if not indexUrlField.exists(retries=3):
         return  
     
     for i in range(2):
@@ -31,7 +31,7 @@ def create_dev_center_app(d: Driver, app_name, outer_url):
 
 def delete_dev_center_app(d: Driver, app_name):
     d(text="My Apps").click_if_exists()
-    if not d(type="textField").exists(retries=2, wait_time=2):
+    if not d(type="textField").exists(retries=5):
         return
     d(type="textField", index=0).input_text(app_name)
     d(text="My Apps", index=0).click_if_exists()
@@ -39,15 +39,15 @@ def delete_dev_center_app(d: Driver, app_name):
     while d(type="checkBox", index=1).exists():
         d(type="checkBox", index=1).click_if_exists()
         d(type="button", text="Delete").click_if_exists()
-        if not d(type="button", text="Delete", index=1).exists(retries=2, wait_time=2):
+        if not d(type="button", text="Delete", index=1).exists(retries=5):
             break
         d(type="button", text="Delete", index=1).click_if_exists()
         time.sleep(2)
 
 def test_demo(d: Driver):
-    if not d(text="Dev Center").exists(retries=10, wait_time=2):
+    if not d(text="Dev Center").exists(retries=30):
         d(id="navigationButton3").click_if_exists()
-    if d(text="Dev Center").exists(retries=10, wait_time=2):
+    if d(text="Dev Center").exists(retries=30):
         d(text="Dev Center").click_if_exists()
         for i in range(5):
             if d(type="button", text=" New App").exists() or d(type="button", text="Create an App").exists() :
@@ -57,10 +57,10 @@ def test_demo(d: Driver):
     time.sleep(5)
     
 def test_english_teaching_apps(d: Driver):
-    if not d(text="Dev Center").exists(retries=10, wait_time=2):
+    if not d(text="Dev Center").exists(retries=30):
         d(id="navigationButton3").click_if_exists()
     
-    if d(text="Dev Center").exists(retries=10, wait_time=2):
+    if d(text="Dev Center").exists(retries=30):
         d(text="Dev Center").click_if_exists()
         
         # 创建英语教学相关的应用
