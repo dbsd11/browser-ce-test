@@ -33,10 +33,10 @@
         "name": "TestAbility",
         "srcEntrance": "./ets/TestAbility/TestAbility.ts",
         "description": "$string:TestAbility_desc",
-        "icon": "$media:icon",
+        "icon": "$media:app_icon",
         "label": "$string:TestAbility_label",
         "visible": true,
-        "startWindowIcon": "$media:icon",
+        "startWindowIcon": "$media:app_icon",
         "startWindowBackground": "$color:white",
         "skills": [
           {
