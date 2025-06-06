@@ -26,21 +26,24 @@ const TAG = '[index]'
 struct Index {
   @State isPhone: boolean= false
   @State browser: Browser= new Browser()
+  @State hideToolBar: boolean = false;
   private isInit: Boolean= false
   listener= mediaquery.matchMediaSync('(orientation:landscape)')
 
   build() {
     Column() {
       if (!this.isPhone) {
-        TabletTitle({ browser: $browser })
-        Progress({ value: this.browser.progress, total: 100 })
-          .color('#0000ff')
-          .visibility(this.browser.hideProgress ? Visibility.None : Visibility.Visible)
-        BrowserTabs({ browser: $browser })
-        Divider().color('#c6c6c6').width('100%').flexShrink(0)
-        WebTab({ browser: $browser, isPhone: $isPhone })
+        if (!this.hideToolBar) {
+          TabletTitle({ browser: $browser })
+          Progress({ value: this.browser.progress, total: 100 })
+            .color('#0000ff')
+            .visibility(this.browser.hideProgress ? Visibility.None : Visibility.Visible)
+          BrowserTabs({ browser: $browser })
+          Divider().color('#c6c6c6').width('100%').flexShrink(0)
+        }
+        WebTab({ browser: $browser, isPhone: $isPhone, hideToolBar: $hideToolBar})
       } else {
-        PhoneLayout({ browser: $browser })
+        PhoneLayout({ browser: $browser, hideToolBar: $hideToolBar})
       }
     }
   }

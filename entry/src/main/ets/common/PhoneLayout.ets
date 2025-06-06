@@ -25,11 +25,11 @@ const UP_COLOR: string = '#00000000'
 @Component
 export struct PhoneLayout {
   @Link browser: Browser;
+  @Link hideToolBar: Boolean;
   @State isPhone: boolean = true;
   @State hasDown: boolean = false;
   @State pageCount: string = '1';
   @State arrayIndex: number = 0;
-  // @State hideToolBar: boolean = false;
 
   private addr: string = ''
   private toolPoneArray: Array<{
@@ -178,15 +178,14 @@ export struct PhoneLayout {
           // }
 
           Column() {
-            WebTab({ browser: $browser, isPhone: $isPhone })
-            // WebTab({ browser: $browser, isPhone: $isPhone, hideToolBar: $hideToolBar })
+            WebTab({ browser: $browser, isPhone: $isPhone, hideToolBar: $hideToolBar })
           }
         }
       }
       .hideTitleBar(true)
       .hideBackButton(true)
       .toolBar(this.ToolBar)
-      // .hideToolBar(this.hideToolBar)
+      .hideToolBar(this.hideToolBar?.valueOf())
     }
   }
 }

@@ -7,11 +7,11 @@
         "material": {
           "certpath": "C:\\Users\\bison\\.ohos\\config\\default_browser-ce_Ymc2jYC6WqliSxrXlGPVlPpdn9pDEsiRFZDnT8XI1r4=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001BED5B58D7388785111326689B9F38364328B31FF7B7E6EE52382787BD81E77CBB6F8C491D10C557",
+          "keyPassword": "0000001B934412FE8F4FA14BB80429D2D690C82FA23E218A1DDA7CD975B1AA64324ADD996832F4A1EF4975",
           "profile": "C:\\Users\\bison\\.ohos\\config\\default_browser-ce_Ymc2jYC6WqliSxrXlGPVlPpdn9pDEsiRFZDnT8XI1r4=.p7b",
           "signAlg": "SHA256withECDSA",
           "storeFile": "C:\\Users\\bison\\.ohos\\config\\default_browser-ce_Ymc2jYC6WqliSxrXlGPVlPpdn9pDEsiRFZDnT8XI1r4=.p12",
-          "storePassword": "0000001BE26A46D7C8A3B2F3D5B85EBC9574371774FDA56B72D61ED7C49DD0DDFEF2C73A4C8B96CE6763CB"
+          "storePassword": "0000001B36014116BE1FB15E93E31F46902EAD226C050D45C164409EF0DBF7B276AB45D07FFCCDDBB10CE8"
         }
       }
     ],

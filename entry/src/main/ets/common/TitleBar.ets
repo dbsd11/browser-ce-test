@@ -18,12 +18,10 @@ import { Browser, LoadingStatus, WebObject, WebKey } from '../model/Browser'
 import Logger from '../model/Logger'
 import WindowStageUtil from '../util/WindowStageUtil'
 import { DownloadDialog, LongPressMenuDialog } from './CustomDialog'
-import picker from '@ohos.file.picker'
 import { BusinessError } from '@kit.BasicServicesKit'
 import { abilityAccessCtrl } from '@kit.AbilityKit';
 import { webview } from '@kit.ArkWeb'
-import { Environment } from '@kit.CoreFileKit';
-
+import { fileUri, picker } from '@kit.CoreFileKit';
 
 const TAG: string = '[TitleBar]'
 const BUTTON_WIDTH: number = 22
@@ -231,7 +229,7 @@ export struct WebTab {
   @Link isPhone: boolean;
   @State downloadingProgress: number = 0;
 
-  // @Link hideToolBar: Boolean;
+  @Link hideToolBar: Boolean;
   isRegistered: boolean = false
   testObj = {
     test: (addr) => {
@@ -370,9 +368,10 @@ export struct WebTab {
 
               let delegate: webview.WebDownloadDelegate = new webview.WebDownloadDelegate()
               delegate.onBeforeDownload((webDownloadItem: webview.WebDownloadItem) => {
-                console.log("will start a download ", webDownloadItem.getSuggestedFileName());
-                const downloadPath = Environment.getUserDownloadDir();
-                webDownloadItem.start(downloadPath + "/" + webDownloadItem.getSuggestedFileName());
+                const downloadPath: string = "/storage/Users/currentUser/Download"
+                const downloadFilePath = downloadPath  + "/" + webDownloadItem.getSuggestedFileName()
+                console.log("will start a download ", webDownloadItem.getSuggestedFileName(), " to ", downloadFilePath);
+                webDownloadItem.start(downloadFilePath);
 
                 // 自定义对话框
                 this.downloadingProgress = 0;
@@ -420,48 +419,50 @@ export struct WebTab {
             })
             // 全屏
             .onFullScreenEnter(() => {
-              // console.log("onFullScreenEnter...")
+              console.log("onFullScreenEnter...")
+              this.hideToolBar = true;
               // WindowStageUtil.setLayoutFullScreen(globalThis.windowStage, WindowStageUtil.COLOR_BLACK, WindowStageUtil.COLOR_WHITE, WindowStageUtil.COLOR_BLACK, WindowStageUtil.COLOR_WHITE);
-              // this.hideToolBar = true;
+              WindowStageUtil.setFullScreen(globalThis.windowStage)
             })
             .onFullScreenExit(() => {
-              // console.log("onFullScreenExit...")
-              // WindowStageUtil.setLayoutFullScreen(globalThis.windowStage, WindowStageUtil.COLOR_WHITE, WindowStageUtil.COLOR_BLACK, '#fdfdfd', WindowStageUtil.COLOR_BLACK);
-              // this.hideToolBar = false;
+              console.log("onFullScreenExit...")
+              this.hideToolBar = false;
+              WindowStageUtil.setLayoutFullScreen(globalThis.windowStage, WindowStageUtil.COLOR_WHITE, WindowStageUtil.COLOR_BLACK, '#fdfdfd', WindowStageUtil.COLOR_BLACK);
             })
             // 长按菜单
             .onContextMenuShow((event) => {
-              console.info("x coord = " + event.param.x())
-              console.info("link url = " + event.param.getLinkUrl())
-              // 长按事件
-              if (event.param.getSourceType() == ContextMenuSourceType.LongPress) {
-                // 自定义对话框
-                this.dialogController = new CustomDialogController({
-                  builder: LongPressMenuDialog({
-                    browser: $browser,
-                    linkUrl: event.param.getLinkUrl(),
-                    existsImageContents: event.param.existsImageContents(),
-                    sourceUrl: event.param.getSourceUrl(),
-                    cancel: this.onCancel,
-                    confirm: this.onAccept,
-                    controller: this.dialogController
-                  }),
-                  cancel: this.existApp,
-                  autoCancel: true,
-                  alignment: DialogAlignment.Default,
-                  offset: { dx: 0, dy: 0 },
-                  gridCount: 3,
-                  customStyle: false,
-                })
-                this.dialogController.open()
-              }
-              return false;
+              // console.info("x coord = " + event.param.x())
+              // console.info("link url = " + event.param.getLinkUrl())
+              // // 长按事件
+              // if (event.param.getSourceType() == ContextMenuSourceType.LongPress) {
+              //   // 自定义对话框
+              //   this.dialogController = new CustomDialogController({
+              //     builder: LongPressMenuDialog({
+              //       browser: $browser,
+              //       linkUrl: event.param.getLinkUrl(),
+              //       existsImageContents: event.param.existsImageContents(),
+              //       sourceUrl: event.param.getSourceUrl(),
+              //       cancel: this.onCancel,
+              //       confirm: this.onAccept,
+              //       controller: this.dialogController
+              //     }),
+              //     cancel: this.existApp,
+              //     autoCancel: true,
+              //     alignment: DialogAlignment.Default,
+              //     offset: { dx: 0, dy: 0 },
+              //     gridCount: 3,
+              //     customStyle: false,
+              //   })
+              //   this.dialogController.open()
+              // }
+              return true;
             })
             // 上传文件
             .domStorageAccess(true)
             .onShowFileSelector((event) => {
               console.log('MyFileUploader onShowFileSelector invoked')
               const documentSelectOptions = new picker.DocumentSelectOptions();
+              documentSelectOptions.defaultFilePathUri = "/storage/Users/currentUser"
               // 选择媒体文件的最大数目
               documentSelectOptions.maxSelectNumber = 1;
               let uris: Array<string> = [];
@@ -477,7 +478,6 @@ export struct WebTab {
               return success;
             })
         }
-        .padding({bottom: 75})
       }, item => item.timestamp.toString())
     }
     .barHeight(0)
