@@ -368,26 +368,38 @@ export struct WebTab {
 
               let delegate: webview.WebDownloadDelegate = new webview.WebDownloadDelegate()
               delegate.onBeforeDownload((webDownloadItem: webview.WebDownloadItem) => {
-                let downloadPath = getContext(this).cacheDir + "/Download"
-                const downloadFilePath = downloadPath  + "/" + webDownloadItem.getSuggestedFileName()
-                console.log("will start a download ", webDownloadItem.getSuggestedFileName(), " to ", downloadFilePath);
-                webDownloadItem.start(downloadFilePath);
+                const documentSaveOptions = new picker.DocumentSaveOptions();
+                documentSaveOptions.pickerMode = picker.DocumentPickerMode.DOWNLOAD
 
-                // 自定义对话框
-                this.downloadingProgress = 0;
-                this.dialogController2 = new CustomDialogController({
-                  builder: DownloadDialog({
-                    fileName: webDownloadItem.getSuggestedFileName(),
-                    downloadingProgress: this.downloadingProgress
-                  }),
-                  cancel: this.existApp,
-                  autoCancel: false,
-                  alignment: DialogAlignment.Default,
-                  offset: { dx: 0, dy: -20 },
-                  gridCount: 4,
-                  customStyle: false
+                let context = getContext(this)
+                const documentViewPicker = new picker.DocumentViewPicker(context);
+                documentViewPicker.select(documentSaveOptions).then((documentSelectResult: Array<string>) => {
+                  if (!documentSelectResult || documentSelectResult.length == 0) {
+                    return
+                  }
+                  let downloadPath = documentSelectResult[0]
+                  const downloadFilePath = downloadPath  + "/" + webDownloadItem.getSuggestedFileName()
+                  console.log("will start a download ", webDownloadItem.getSuggestedFileName(), " to ", downloadFilePath);
+                  webDownloadItem.start(downloadFilePath);
+
+                  // 自定义对话框
+                  this.downloadingProgress = 0;
+                  this.dialogController2 = new CustomDialogController({
+                    builder: DownloadDialog({
+                      fileName: webDownloadItem.getSuggestedFileName(),
+                      downloadingProgress: this.downloadingProgress
+                    }),
+                    cancel: this.existApp,
+                    autoCancel: false,
+                    alignment: DialogAlignment.Default,
+                    offset: { dx: 0, dy: -20 },
+                    gridCount: 4,
+                    customStyle: false
+                  })
+                  this.dialogController2.open()
+                }).catch((err: BusinessError) => {
+                  console.error(`Invoke photoViewPicker.select failed, code is ${err.code}, message is ${err.message}`);
                 })
-                this.dialogController2.open()
               });
               delegate.onDownloadUpdated((webDownloadItem: webview.WebDownloadItem) => {
                 console.log("download update guid: ", webDownloadItem.getGuid(), " percent: ", webDownloadItem.getPercentComplete());
@@ -400,16 +412,16 @@ export struct WebTab {
                   this.dialogController2.close()
                 }
 
-                let sourceDownloadPath = getContext().cacheDir + "/Download"
-                const sourceDownloadFilePath = sourceDownloadPath + "/" + webDownloadItem.getSuggestedFileName()
-                const sourceDownloadFileUrl = new fileUri.FileUri(sourceDownloadFilePath).path
-
-                const destDownloadPath = "file://docs/storage/Users/currentUser/Download"
-                const destDownloadFilePath = destDownloadPath + "/" + webDownloadItem.getSuggestedFileName()
-                const destDownloadFileUrl = new fileUri.FileUri(destDownloadFilePath).path
-
-                fs.copyFileSync(sourceDownloadFileUrl, destDownloadFileUrl, 0);
-                fs.unlinkSync(sourceDownloadFileUrl)
+                // let sourceDownloadPath = getContext().cacheDir + "/Download"
+                // const sourceDownloadFilePath = sourceDownloadPath + "/" + webDownloadItem.getSuggestedFileName()
+                // const sourceDownloadFileUrl = new fileUri.FileUri(sourceDownloadFilePath).path
+                //
+                // const destDownloadPath = "file://docs/storage/Users/currentUser/Download"
+                // const destDownloadFilePath = destDownloadPath + "/" + webDownloadItem.getSuggestedFileName()
+                // const destDownloadFileUrl = new fileUri.FileUri(destDownloadFilePath).path
+                //
+                // fs.copyFileSync(sourceDownloadFileUrl, destDownloadFileUrl, 0);
+                // fs.unlinkSync(sourceDownloadFileUrl)
               })
               delegate.onDownloadFailed((webDownloadItem: webview.WebDownloadItem) => {
                 console.log("download failed guid: ", webDownloadItem.getGuid());
