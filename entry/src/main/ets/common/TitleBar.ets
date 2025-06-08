@@ -18,7 +18,7 @@ import { Browser, LoadingStatus, WebObject, WebKey } from '../model/Browser'
 import Logger from '../model/Logger'
 import WindowStageUtil from '../util/WindowStageUtil'
 import { DownloadDialog, LongPressMenuDialog } from './CustomDialog'
-import { BusinessError } from '@kit.BasicServicesKit'
+import { BusinessError, systemDateTime } from '@kit.BasicServicesKit'
 import { abilityAccessCtrl } from '@kit.AbilityKit';
 import { webview } from '@kit.ArkWeb'
 import { fileUri, picker, fileIo as fs } from '@kit.CoreFileKit';
@@ -366,21 +366,28 @@ export struct WebTab {
                 this.browser.inputValue = ''
               }
 
+              let destDownloadFilePath: string
+
               let delegate: webview.WebDownloadDelegate = new webview.WebDownloadDelegate()
               delegate.onBeforeDownload((webDownloadItem: webview.WebDownloadItem) => {
                 const documentSaveOptions = new picker.DocumentSaveOptions();
-                documentSaveOptions.pickerMode = picker.DocumentPickerMode.DOWNLOAD
-
-                let context = getContext(this)
+                documentSaveOptions.defaultFilePathUri = "file://docs/storage/Users/currentUser/Download";
+                documentSaveOptions.newFileNames = [ webDownloadItem.getSuggestedFileName()]
+                documentSaveOptions.pickerMode = picker.DocumentPickerMode.DEFAULT;
+                let context = getContext()
                 const documentViewPicker = new picker.DocumentViewPicker(context);
-                documentViewPicker.select(documentSaveOptions).then((documentSelectResult: Array<string>) => {
+                documentViewPicker.save(documentSaveOptions, (err, documentSelectResult: Array<string>) => {
                   if (!documentSelectResult || documentSelectResult.length == 0) {
                     return
                   }
-                  let downloadPath = documentSelectResult[0]
-                  const downloadFilePath = downloadPath  + "/" + webDownloadItem.getSuggestedFileName()
-                  console.log("will start a download ", webDownloadItem.getSuggestedFileName(), " to ", downloadFilePath);
-                  webDownloadItem.start(downloadFilePath);
+
+                  destDownloadFilePath = documentSelectResult[0]
+
+                  let downloadPath = getContext().tempDir
+                  let downloadFilePath = downloadPath + "/" + webDownloadItem.getSuggestedFileName()
+                  let downloadFileUrl  = new fileUri.FileUri(downloadFilePath).path
+                  console.log("will start a download ", webDownloadItem.getSuggestedFileName(), " to ", downloadFileUrl);
+                  webDownloadItem.start(downloadFileUrl);
 
                   // 自定义对话框
                   this.downloadingProgress = 0;
@@ -397,8 +404,6 @@ export struct WebTab {
                     customStyle: false
                   })
                   this.dialogController2.open()
-                }).catch((err: BusinessError) => {
-                  console.error(`Invoke photoViewPicker.select failed, code is ${err.code}, message is ${err.message}`);
                 })
               });
               delegate.onDownloadUpdated((webDownloadItem: webview.WebDownloadItem) => {
@@ -412,16 +417,23 @@ export struct WebTab {
                   this.dialogController2.close()
                 }
 
-                // let sourceDownloadPath = getContext().cacheDir + "/Download"
-                // const sourceDownloadFilePath = sourceDownloadPath + "/" + webDownloadItem.getSuggestedFileName()
-                // const sourceDownloadFileUrl = new fileUri.FileUri(sourceDownloadFilePath).path
-                //
-                // const destDownloadPath = "file://docs/storage/Users/currentUser/Download"
-                // const destDownloadFilePath = destDownloadPath + "/" + webDownloadItem.getSuggestedFileName()
-                // const destDownloadFileUrl = new fileUri.FileUri(destDownloadFilePath).path
-                //
-                // fs.copyFileSync(sourceDownloadFileUrl, destDownloadFileUrl, 0);
-                // fs.unlinkSync(sourceDownloadFileUrl)
+                let sourceDownloadPath = getContext().tempDir
+                const sourceDownloadFilePath = sourceDownloadPath + "/" + webDownloadItem.getSuggestedFileName()
+                const sourceDownloadFileUrl = new fileUri.FileUri(sourceDownloadFilePath).path
+
+                const destDownloadFileUrl = new fileUri.FileUri(destDownloadFilePath).path
+
+                try {
+                  fs.copyFileSync(sourceDownloadFileUrl, destDownloadFileUrl, 0);
+                } catch (e) {
+                  console.warn("download failed copy tempFile to Download path failed", e)
+                } finally {
+                  try {
+                    fs.unlinkSync(sourceDownloadFileUrl)
+                    console.info("download finished delete tempFile")
+                  } catch (e) {
+                  }
+                }
               })
               delegate.onDownloadFailed((webDownloadItem: webview.WebDownloadItem) => {
                 console.log("download failed guid: ", webDownloadItem.getGuid());
@@ -444,8 +456,7 @@ export struct WebTab {
             .onFullScreenEnter(() => {
               console.log("onFullScreenEnter...")
               this.hideToolBar = true;
-              // WindowStageUtil.setLayoutFullScreen(globalThis.windowStage, WindowStageUtil.COLOR_BLACK, WindowStageUtil.COLOR_WHITE, WindowStageUtil.COLOR_BLACK, WindowStageUtil.COLOR_WHITE);
-              WindowStageUtil.setFullScreen(globalThis.windowStage)
+              WindowStageUtil.setLayoutFullScreen(globalThis.windowStage, WindowStageUtil.COLOR_BLACK, WindowStageUtil.COLOR_WHITE, WindowStageUtil.COLOR_BLACK, WindowStageUtil.COLOR_WHITE);
             })
             .onFullScreenExit(() => {
               console.log("onFullScreenExit...")
@@ -454,30 +465,6 @@ export struct WebTab {
             })
             // 长按菜单
             .onContextMenuShow((event) => {
-              // console.info("x coord = " + event.param.x())
-              // console.info("link url = " + event.param.getLinkUrl())
-              // // 长按事件
-              // if (event.param.getSourceType() == ContextMenuSourceType.LongPress) {
-              //   // 自定义对话框
-              //   this.dialogController = new CustomDialogController({
-              //     builder: LongPressMenuDialog({
-              //       browser: $browser,
-              //       linkUrl: event.param.getLinkUrl(),
-              //       existsImageContents: event.param.existsImageContents(),
-              //       sourceUrl: event.param.getSourceUrl(),
-              //       cancel: this.onCancel,
-              //       confirm: this.onAccept,
-              //       controller: this.dialogController
-              //     }),
-              //     cancel: this.existApp,
-              //     autoCancel: true,
-              //     alignment: DialogAlignment.Default,
-              //     offset: { dx: 0, dy: 0 },
-              //     gridCount: 3,
-              //     customStyle: false,
-              //   })
-              //   this.dialogController.open()
-              // }
               return true;
             })
             // 上传文件
@@ -487,7 +474,7 @@ export struct WebTab {
               let context = getContext();
               const documentSelectOptions = new picker.DocumentSelectOptions();
               // 选择媒体文件的最大数目
-              documentSelectOptions.maxSelectNumber = 1;
+              documentSelectOptions.maxSelectNumber = 2;
               let uris: Array<string> = [];
               let success = false;
               const documentViewPicker = new picker.DocumentViewPicker(context);
