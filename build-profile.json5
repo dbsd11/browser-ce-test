@@ -7,11 +7,11 @@
         "material": {
           "certpath": "C:\\Users\\bison\\.ohos\\config\\default_browser-ce_Ymc2jYC6WqliSxrXlGPVlPpdn9pDEsiRFZDnT8XI1r4=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001B934412FE8F4FA14BB80429D2D690C82FA23E218A1DDA7CD975B1AA64324ADD996832F4A1EF4975",
+          "keyPassword": "0000001A61F9ECF145B550EA334AB811A887862E98F05D54B06F58740BEB34ED2E6E40BA199A5973F480",
           "profile": "C:\\Users\\bison\\.ohos\\config\\default_browser-ce_Ymc2jYC6WqliSxrXlGPVlPpdn9pDEsiRFZDnT8XI1r4=.p7b",
           "signAlg": "SHA256withECDSA",
           "storeFile": "C:\\Users\\bison\\.ohos\\config\\default_browser-ce_Ymc2jYC6WqliSxrXlGPVlPpdn9pDEsiRFZDnT8XI1r4=.p12",
-          "storePassword": "0000001B36014116BE1FB15E93E31F46902EAD226C050D45C164409EF0DBF7B276AB45D07FFCCDDBB10CE8"
+          "storePassword": "0000001A0BC7F11BE61B290FA9788B152260228C25A881F704CC5F8D9A5114EE2ECC05B027F2B7DF7A8D"
         }
       }
     ],
@@ -19,9 +19,9 @@
       {
         "name": "default",
         "signingConfig": "default",
-        "compileSdkVersion": 15,
+        "compileSdkVersion": 11,
         "compatibleSdkVersion": 9,
-        "runtimeOS": "OpenHarmony",
+        "runtimeOS": "OpenHarmony"
       }
     ]
   },

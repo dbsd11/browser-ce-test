@@ -16,7 +16,7 @@
     "abilities": [
       {
         "name": "MainAbility",
-        "srcEntrance": "./ets/MainAbility/MainAbility.ts",
+//        "srcEntrance": "./ets/MainAbility/MainAbility.ts",
         "description": "$string:MainAbility_desc",
         "icon": "$media:app_icon",
         "label": "$string:MainAbility_label",
@@ -53,6 +53,16 @@
       },
       {
         "name": "ohos.permission.READ_WRITE_DOWNLOAD_DIRECTORY",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when": "always"
+        },
+        "reason": "$string:Download_File"
+      },
+      {
+        "name": "ohos.permission.READ_WRITE_DOCUMENTS_DIRECTORY",
         "usedScene": {
           "abilities": [
             "EntryAbility"
