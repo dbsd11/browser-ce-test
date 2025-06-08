@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 import mediaquery from '@ohos.mediaquery'
-import parameter from '@ohos.systemparameter'
 import { TabletTitle, BrowserTabs, WebTab } from '../common/TitleBar'
 import { PhoneLayout } from '../common/PhoneLayout'
 import { Browser, LoadingStatus } from '../model/Browser'
@@ -50,7 +49,7 @@ struct Index {
 
   aboutToAppear() {
     try {
-      let deviceType = parameter.getSync("const.build.characteristics")
+      let deviceType = "default"
       // 修改为：default 也认为是 phone
       if (deviceType === 'phone') {
       //if (deviceType === 'phone') {

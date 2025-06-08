@@ -62,6 +62,26 @@
         "reason": "$string:Download_File"
       },
       {
+        "name": "ohos.permission.READ_WRITE_DOCUMENTS_DIRECTORY",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when": "always"
+        },
+        "reason": "$string:Download_File"
+      },
+      {
+        "name": "ohos.permission.FILE_ACCESS_PERSIST",
+        "usedScene": {
+          "abilities": [
+            "EntryAbility"
+          ],
+          "when": "always"
+        },
+        "reason": "$string:Download_File"
+      },
+      {
         "name": "ohos.permission.CAMERA",
         "usedScene": {
           "abilities": [

@@ -21,7 +21,7 @@ import { DownloadDialog, LongPressMenuDialog } from './CustomDialog'
 import { BusinessError } from '@kit.BasicServicesKit'
 import { abilityAccessCtrl } from '@kit.AbilityKit';
 import { webview } from '@kit.ArkWeb'
-import { fileUri, picker } from '@kit.CoreFileKit';
+import { fileUri, picker, fileIo as fs } from '@kit.CoreFileKit';
 
 const TAG: string = '[TitleBar]'
 const BUTTON_WIDTH: number = 22
@@ -269,7 +269,7 @@ export struct WebTab {
 
   aboutToAppear(): void {
     let atManager = abilityAccessCtrl.createAtManager();
-    atManager.requestPermissionsFromUser(getContext(this), ['ohos.permission.CAMERA', 'ohos.permission.MICROPHONE'])
+    atManager.requestPermissionsFromUser(getContext(this), ['ohos.permission.CAMERA', 'ohos.permission.MICROPHONE', 'ohos.permission.READ_WRITE_DOWNLOAD_DIRECTORY', 'ohos.permission.READ_WRITE_DOCUMENTS_DIRECTORY', 'ohos.permission.FILE_ACCESS_PERSIST'])
       .then((data) => {
         console.info('data:' + JSON.stringify(data));
         console.info('data permissions:' + data.permissions);
@@ -368,26 +368,38 @@ export struct WebTab {
 
               let delegate: webview.WebDownloadDelegate = new webview.WebDownloadDelegate()
               delegate.onBeforeDownload((webDownloadItem: webview.WebDownloadItem) => {
-                const downloadPath: string = "/storage/Users/currentUser/Download"
-                const downloadFilePath = downloadPath  + "/" + webDownloadItem.getSuggestedFileName()
-                console.log("will start a download ", webDownloadItem.getSuggestedFileName(), " to ", downloadFilePath);
-                webDownloadItem.start(downloadFilePath);
+                let context = getContext(this)
+                const documentSaveOptions = new picker.DocumentSaveOptions();
+                documentSaveOptions.defaultFilePathUri = context.filesDir;
+                documentSaveOptions.pickerMode = picker.DocumentPickerMode.DOWNLOAD
+                const documentViewPicker = new picker.DocumentViewPicker(context);
+                documentViewPicker.select(documentSaveOptions).then((DocumentSelectResult: Array<string>) => {
+                  if (!DocumentSelectResult || DocumentSelectResult.length == 0) {
+                    return
+                  }
+                  let downloadPath = DocumentSelectResult[0] + "/Download"
+                  const downloadFilePath = downloadPath  + "/" + webDownloadItem.getSuggestedFileName()
+                  console.log("will start a download ", webDownloadItem.getSuggestedFileName(), " to ", downloadFilePath);
+                  webDownloadItem.start(downloadFilePath);
 
-                // 自定义对话框
-                this.downloadingProgress = 0;
-                this.dialogController2 = new CustomDialogController({
-                  builder: DownloadDialog({
-                    fileName: webDownloadItem.getSuggestedFileName(),
-                    downloadingProgress: this.downloadingProgress
-                  }),
-                  cancel: this.existApp,
-                  autoCancel: false,
-                  alignment: DialogAlignment.Default,
-                  offset: { dx: 0, dy: -20 },
-                  gridCount: 4,
-                  customStyle: false
+                  // 自定义对话框
+                  this.downloadingProgress = 0;
+                  this.dialogController2 = new CustomDialogController({
+                    builder: DownloadDialog({
+                      fileName: webDownloadItem.getSuggestedFileName(),
+                      downloadingProgress: this.downloadingProgress
+                    }),
+                    cancel: this.existApp,
+                    autoCancel: false,
+                    alignment: DialogAlignment.Default,
+                    offset: { dx: 0, dy: -20 },
+                    gridCount: 4,
+                    customStyle: false
+                  })
+                  this.dialogController2.open()
+                }).catch((err: BusinessError) => {
+                  console.error(`Invoke photoViewPicker.select failed, code is ${err.code}, message is ${err.message}`);
                 })
-                this.dialogController2.open()
               });
               delegate.onDownloadUpdated((webDownloadItem: webview.WebDownloadItem) => {
                 console.log("download update guid: ", webDownloadItem.getGuid(), " percent: ", webDownloadItem.getPercentComplete());
@@ -399,6 +411,17 @@ export struct WebTab {
                 if (this.dialogController2) {
                   this.dialogController2.close()
                 }
+
+                // let sourceDownloadPath = getContext().filesDir + "/Download"
+                // const sourceDownloadFilePath = sourceDownloadPath + "/" + webDownloadItem.getSuggestedFileName()
+                // const sourceDownloadFileUrl = new fileUri.FileUri(sourceDownloadFilePath).path
+                //
+                // const destDownloadPath = "file://docs/storage/Users/currentUser/Download"
+                // const destDownloadFilePath = destDownloadPath + "/aaaaa"
+                // const destDownloadFileUrl = new fileUri.FileUri(destDownloadFilePath).path
+                //
+                // fs.copyFileSync(sourceDownloadFileUrl, destDownloadFileUrl, 0);
+                // fs.unlinkSync(sourceDownloadFileUrl)
               })
               delegate.onDownloadFailed((webDownloadItem: webview.WebDownloadItem) => {
                 console.log("download failed guid: ", webDownloadItem.getGuid());
@@ -462,7 +485,8 @@ export struct WebTab {
             .onShowFileSelector((event) => {
               console.log('MyFileUploader onShowFileSelector invoked')
               const documentSelectOptions = new picker.DocumentSelectOptions();
-              documentSelectOptions.defaultFilePathUri = "/storage/Users/currentUser"
+              documentSelectOptions.defaultFilePathUri = getContext().filesDir
+              documentSelectOptions.authMode = true;
               // 选择媒体文件的最大数目
               documentSelectOptions.maxSelectNumber = 1;
               let uris: Array<string> = [];
